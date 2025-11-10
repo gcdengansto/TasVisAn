@@ -1,6 +1,5 @@
 # TasVisAn
 
-<<<<<<< HEAD
 TasVisAn is a Python library for data reduction of neutron triple-axis spectrometers, especially for data collected on Sika and Taipan at Australian Centre for Neutron Scattering, Australian Nuclear Science and Technology. 
 
     * Structure factor calculation, including
@@ -27,26 +26,18 @@ TasVisAn is a Python library for data reduction of neutron triple-axis spectrome
         * Mulit-analyser / multiplexing Data Combination and Normalization
         * Mulit-analyser / multiplexing Data Visulization in 3D
 
-
-
-
 =======
-TasVisAn is a Python library for data reduction of the triple-axis spectrometers Taipan and Sika at ACNS, ANSTO.
->>>>>>> 47a4e69 (commit version 0.1.1)
+TasVisAn is a Python library for data reduction of triple-axis spectrometers in general. Especially, it provides several classes to do data reduction and manipulation of the data from the thermal-neutron triple-axis spectrometer Taipan and the cold-neutron triple-axis spectrometer Sika at ACNS, ANSTO, and the thermal-neutron triple-axis spectrometer BT7 and the cold-neutron triple-axis spectrometer BT4 at NCNR, NIST. More triple-axis spectrometers, including multiple-analyser triple-axis spectrometers will be covered in the future. 
+
 
 ## Installation
 
-Use the package manager [pip](https://) to install TasVisAn.
-<<<<<<< HEAD
+Use the package manager pip to install TasVisAn.
+
 Go to the folder of TasVisAn
 ```bash
 pip install -e . 
-=======
 
-```bash
-pip install TasVisAn
->>>>>>> 47a4e69 (commit version 0.1.1)
-```
 
 ## Usage
 
@@ -56,14 +47,28 @@ import TasVisAn
 
 ```
 
+Documentation
+-------------
+Please refer to the following article for detailed information about this package InsPy:
+[TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
+by Guochu Deng* and Garry J. McIntyre, JOURNAL OF APPLIED CRYSTALLOGRAPHY Volume 58, Page 1-14,  2025
+The DOI of this article is as follows:
+
+[https://doi.org/10.1107/S1600576725008180](https://doi.org/10.1107/S1600576725008180)
+
+Please find [the tutorial](https://github.com/gcdengansto/TasVisAn/blob/main/examples/TasVisAn_Demo.ipynb)  in [the examples folder](https://github.com/gcdengansto/TasVisAn/examples).
+
+The video clips demonstrating how to run the GUIs for data fitting in this package can be found here:
+[TASDataBrowser_demo] (https://doi.org/10.1107/S1600576725008180/te5154sup2.mp4)
+
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
 ## License
-<<<<<<< HEAD
+
 [MIT](https://choosealicense.com/licenses/mit/)
 =======
 [MIT](https://choosealicense.com/licenses/mit/)
->>>>>>> 47a4e69 (commit version 0.1.1)
+
