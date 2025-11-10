@@ -1,0 +1,8 @@
+README.md
+setup.py
+TasVisAn.egg-info/PKG-INFO
+TasVisAn.egg-info/SOURCES.txt
+TasVisAn.egg-info/dependency_links.txt
+TasVisAn.egg-info/not-zip-safe
+TasVisAn.egg-info/requires.txt
+TasVisAn.egg-info/top_level.txt

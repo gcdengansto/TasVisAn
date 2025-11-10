@@ -1,5 +1,6 @@
 # TasVisAn
 
+<<<<<<< HEAD
 TasVisAn is a Python library for data reduction of neutron triple-axis spectrometers, especially for data collected on Sika and Taipan at Australian Centre for Neutron Scattering, Australian Nuclear Science and Technology. 
 
     * Structure factor calculation, including
@@ -29,13 +30,22 @@ TasVisAn is a Python library for data reduction of neutron triple-axis spectrome
 
 
 
+=======
+TasVisAn is a Python library for data reduction of the triple-axis spectrometers Taipan and Sika at ACNS, ANSTO.
+>>>>>>> 47a4e69 (commit version 0.1.1)
 
 ## Installation
 
 Use the package manager [pip](https://) to install TasVisAn.
+<<<<<<< HEAD
 Go to the folder of TasVisAn
 ```bash
 pip install -e . 
+=======
+
+```bash
+pip install TasVisAn
+>>>>>>> 47a4e69 (commit version 0.1.1)
 ```
 
 ## Usage
@@ -52,4 +62,8 @@ Pull requests are welcome. For major changes, please open an issue first to disc
 Please make sure to update tests as appropriate.
 
 ## License
+<<<<<<< HEAD
 [MIT](https://choosealicense.com/licenses/mit/)
+=======
+[MIT](https://choosealicense.com/licenses/mit/)
+>>>>>>> 47a4e69 (commit version 0.1.1)
