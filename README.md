@@ -26,14 +26,18 @@ TasVisAn is a Python library for data reduction of neutron triple-axis spectrome
         * Mulit-analyser / multiplexing Data Combination and Normalization
         * Mulit-analyser / multiplexing Data Visulization in 3D
 
-=======
-TasVisAn is a Python library for data reduction of triple-axis spectrometers in general. Especially, it provides several classes to do data reduction and manipulation of the data from the thermal-neutron triple-axis spectrometer Taipan and the cold-neutron triple-axis spectrometer Sika at ACNS, ANSTO, and the thermal-neutron triple-axis spectrometer BT7 and the cold-neutron triple-axis spectrometer BT4 at NCNR, NIST. More triple-axis spectrometers, including multiple-analyser triple-axis spectrometers will be covered in the future. 
+
+TasVisAn is a Python library for data reduction of triple-axis spectrometers in general. Especially, it provides the customized classes to conduct data reduction, visualization and convolution fitting for the data collected from the following triple-axis spectrometers:
+  * the thermal-neutron triple-axis spectrometer Taipan, ACNS, ANSTO
+  * the cold-neutron triple-axis spectrometer Sika, ACNS, ANSTO
+  * the thermal-neutron triple-axis spectrometer BT7, NCNR, NIST
+  * the cold-neutron triple-axis spectrometer BT4, NCNR, NIST
+More triple-axis spectrometers, including multiple-analyser triple-axis spectrometers, will be included in the future. 
 
 
 ## Installation
 
 Use the package manager pip to install TasVisAn.
-
 Go to the folder of TasVisAn
 ```bash
 pip install -e . 
@@ -44,10 +48,9 @@ pip install -e .
 ```python
 import TasVisAn
 
-
 ```
 
-Documentation
+## Documentation
 -------------
 Please refer to the following article for detailed information about this package InsPy:
 [TasVisAn and InsPy: Python packages for triple-axis spectrometer data visualization, analysis, instrument resolution calculation and convolution](https://onlinelibrary.wiley.com/iucr/doi/10.1107/S1600576725008180)
@@ -62,16 +65,16 @@ The video clips demonstrating how to run the GUIs for data fitting in this packa
 [TASDataBrowser_demo] (https://doi.org/10.1107/S1600576725008180/te5154sup2.mp4)
 
 ## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+---------------
+Feature requests and bug reports can be made using the GitHub issues interface. 
 
-Please make sure to update tests as appropriate.
 
 
-Copyright & Licensing
+## Copyright & Licensing
 ---------------------
 Copyright (c) 2020-2025, Guochu Deng, Released under terms in [MIT](https://choosealicense.com/licenses/mit/) LICENSE.
 
-Disclaimer
+## Disclaimer
 ----------
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
