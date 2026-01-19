@@ -181,6 +181,11 @@ class TasData:
                     continue
                 
                 # Normalize to target monitor count (uses norm_mon_count, not avg_monitor_this_df)
+                #print("XXXXXXXXXXXXXXXXX")
+                #print(len(df['detector']))
+                #print(len(df['monitor']))
+                #print(norm_mon_count)
+                #print("XXXXXXXXXXXXXXXXX")
                 df['detector'] = df['detector'] * norm_mon_count / df['monitor']
                 normalized_dflist.append(df)
             else:
@@ -308,50 +313,56 @@ class TasData:
             axs = list(axs)    # NEW: Ensure axs is a list
                 
             for ii in range(len(dflist)):
-                Xaxis = dflist[ii].attrs.get('scanax1')
-                if Xaxis is None:
-                    raise TypeError("The scan axis is unknown from the data header.")
-
-                dataX = dflist[ii][Xaxis].to_numpy()
-                dataY = dflist[ii][Yaxis].to_numpy()
-                
-                if fit and len(dflist[ii]) > 4:
-                    cur_fitpar, cur_fitdat = fit_peak(dataX, dataY, func='G', initial=initial)
-                    axs[ii].plot(dataX, dataY, 'o', cur_fitdat["X"], cur_fitdat["Y_fit"], '-')
-
-                    params_df   =  pd.concat([params_df, cur_fitpar], axis=0, ignore_index=True)
-                    fitted_df   =  pd.merge(fitted_df, cur_fitdat, how='outer', left_index=True, right_index=True, suffixes=("", "_"+str(ii)))
+                if dflist[ii].empty:
+                    print(f"The {ii}th DataFrame in the list is empty! No plot.")
                 else:
-                    axs[ii].plot(dataX, dataY, 'o')
-                    if fit and len(dflist[ii]) <= 4:
-                        print("Not enough data points for fitting!")
-                axs[ii].set_xlabel(Xaxis)
-                axs[ii].set_ylabel('Intensity [counts]')
+                    Xaxis = dflist[ii].attrs.get('scanax1')
+                    if Xaxis is None:
+                        raise TypeError("The scan axis is unknown from the data header.")
+
+                    dataX = dflist[ii][Xaxis].to_numpy()
+                    dataY = dflist[ii][Yaxis].to_numpy()
+                    
+                    if fit and len(dflist[ii]) > 4:
+                        cur_fitpar, cur_fitdat = fit_peak(dataX, dataY, func='G', initial=initial)
+                        axs[ii].plot(dataX, dataY, 'o', cur_fitdat["X"], cur_fitdat["Y_fit"], '-')
+
+                        params_df   =  pd.concat([params_df, cur_fitpar], axis=0, ignore_index=True)
+                        fitted_df   =  pd.merge(fitted_df, cur_fitdat, how='outer', left_index=True, right_index=True, suffixes=("", "_"+str(ii)))
+                    else:
+                        axs[ii].plot(dataX, dataY, 'o')
+                        if fit and len(dflist[ii]) <= 4:
+                            print("Not enough data points for fitting!")
+                    axs[ii].set_xlabel(Xaxis)
+                    axs[ii].set_ylabel('Intensity [counts]')
 
             return params_df, fitted_df, fig, axs
 
         elif len(dflist) == 1:
-            fig, ax = plt.subplots(1, 1, figsize=(6, 4))
-            Xaxis = dflist[0].attrs.get('scanax1')
-            if Xaxis is None:
-                raise TypeError("The scan axis is unknown from the data header.")
-
-            dataX = dflist[0][Xaxis].to_numpy()
-            dataY = dflist[0][Yaxis].to_numpy()
-    
-            if fit and len(dflist[0]) > 4:
-                cur_fitpar, cur_fitdat = fit_peak(dataX, dataY, func='G', initial=initial)
-                ax.plot(dataX, dataY, 'o', cur_fitdat["X"], cur_fitdat["Y_fit"], '-')
-
-                params_df   =  pd.concat([params_df, cur_fitpar], axis=0, ignore_index=True)
-                fitted_df   =  pd.merge(fitted_df, cur_fitdat, how='outer', left_index=True, right_index=True, suffixes=("", "_"))
+            if dflist[0].empty:
+                print(f"The only one DataFrame in the list is empty! No plot.")
             else:
-                ax.plot(dataX, dataY, 'o')
-                if fit and len(dflist[0]) <= 4 :
-                    print("Not enough data points for fitting!")
+                fig, ax = plt.subplots(1, 1, figsize=(6, 4))
+                Xaxis = dflist[0].attrs.get('scanax1')
+                if Xaxis is None:
+                    raise TypeError("The scan axis is unknown from the data header.")
 
-            ax.set_xlabel(Xaxis)
-            ax.set_ylabel('Intensity [counts]')
+                dataX = dflist[0][Xaxis].to_numpy()
+                dataY = dflist[0][Yaxis].to_numpy()
+        
+                if fit and len(dflist[0]) > 4:
+                    cur_fitpar, cur_fitdat = fit_peak(dataX, dataY, func='G', initial=initial)
+                    ax.plot(dataX, dataY, 'o', cur_fitdat["X"], cur_fitdat["Y_fit"], '-')
+
+                    params_df   =  pd.concat([params_df, cur_fitpar], axis=0, ignore_index=True)
+                    fitted_df   =  pd.merge(fitted_df, cur_fitdat, how='outer', left_index=True, right_index=True, suffixes=("", "_"))
+                else:
+                    ax.plot(dataX, dataY, 'o')
+                    if fit and len(dflist[0]) <= 4 :
+                        print("Not enough data points for fitting!")
+
+                ax.set_xlabel(Xaxis)
+                ax.set_ylabel('Intensity [counts]')
 
             return params_df, fitted_df, fig, [ax]  # NEW: Return ax as a single-item list
 

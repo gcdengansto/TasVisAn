@@ -151,6 +151,7 @@ class Sika(TasData):
 
         # Parse header information
         params = self._sika_data_header_info(fullfilepath)
+        #print(params)
         
         # Get file structure information
         data_start_line = params.pop('_data_start_line', 0)
@@ -210,6 +211,7 @@ class Sika(TasData):
     def sika_simpleplot(self, path="", scanlist=None, fit=False, initial=None):
         #quick plot without normalization and combination
         dflist = self.sika_batch_reduction(path, scanlist)
+        #print(dflist)
         parlist, fitlist, fig, ax=self.tas_simpleplot(dflist, fit, initial)
 
         return parlist, fitlist, fig, ax
@@ -287,11 +289,15 @@ class Sika(TasData):
             df_extend = df_extend.sort_values(by=sortby, ascending = True).reset_index(drop=True)
         return df_extend  
 
+    def sika_random_contour(self, path='', scanlist=None, motorlist=['qh', 'qk', 'ql', 'en', 'detector', 'monitor'], x_col="qh", y_col="en", xtitle='qh [rlu]', ytitle='en [meV]',title='Contour Map of Measurement Data', vminmax=[0, 1000], output_file=None):
+        df_total = self.sika_reduction_by_row(path, scanlist, motorlist=motorlist)
+        ax = super().tas_random_contour(df_total, x_col=x_col, y_col=y_col, xtitle=xtitle, ytitle=ytitle, title=title, vminmax=vminmax, output_file=output_file)
+        return ax
+
     def sika_tidy_contour(self, path='',  scanlist=None, motorlist=['qh', 'qk', 'ql', 'en', 'detector', 'monitor'], x_col='qh', y_col='en', xlabel='Q [rlu]',ylabel='E [meV]', vminmax=None, ax=None):
        
-        
         dflist = self.sika_batch_reduction(path, scanlist, motorlist=motorlist)
-        qq, ee, intt, ax = super(Sika, self).tas_tidy_contour(dflist,  x_col=x_col, y_col=y_col, xlabel=xlabel, ylabel=ylabel, vminmax=vminmax, ax=ax)
+        qq, ee, intt, ax = super().tas_tidy_contour(dflist,  x_col=x_col, y_col=y_col, xlabel=xlabel, ylabel=ylabel, vminmax=vminmax, ax=ax)
         return qq, ee, intt, ax
 
 
@@ -345,8 +351,12 @@ class Sika(TasData):
         for fileindex, fileno in enumerate (filenolist):
             filename = str(int(fileno))
             filename = basestr[:-len(filename)] + filename
-            
-            fullpath = ppath / Path(self.expnum + "_" + filename + fileext)
+            expnumstr = "0000"
+
+            expnumstr=expnumstr[0:4-len(str(self.expnum))] + str(self.expnum)
+                
+            fullpath = ppath / Path(expnumstr + "_" + filename + fileext)
+            #print(fullpath)
 
             scanno_list.append(int(fileno))
             with fullpath.open() as f:

@@ -330,8 +330,6 @@ class Taipan(TasData):
         
         dflist     = list()
 
-
-
         for scanno in scanlist:
             #print(f"the problem here:{scanno}")
             #print(isinstance(scanno, int))  # this will be false, int is not np.integer the same
@@ -385,11 +383,18 @@ class Taipan(TasData):
             df_extend = df_extend.sort_values(by=sortby, ascending = True).reset_index(drop=True)
         return df_extend
 
-    def taipan_tidy_contour(self, path='',  scanlist=None, motorlist=['qh', 'qk', 'ql', 'en', 'detector', 'monitor'], x_col='qh', y_col='en', xlabel='Q [rlu]',ylabel='E [meV]', vminmax=None, bRot=False, ax=None):
+
+    def taipan_random_contour(self, path='', scanlist=None, motorlist=['qh', 'qk', 'ql', 'en', 'detector', 'monitor'], x_col="qh", y_col="en", xtitle='qh [rlu]', ytitle='en [meV]',title='Contour Map of Measurement Data', vminmax=[0, 1000], output_file=None):
+        df_total = self.taipan_reduction_by_row(path, scanlist, motorlist=motorlist)
+        #print(dflist[0])
+        ax = super().tas_random_contour(df_total, x_col=x_col, y_col=y_col, xtitle=xtitle, ytitle=ytitle, title=title, vminmax=vminmax, output_file=output_file)
+        return ax
+
+
+    def taipan_tidy_contour(self, path='', scanlist=None, motorlist=['qh', 'qk', 'ql', 'en', 'detector', 'monitor'], x_col='qh', y_col='en', xlabel='Q [rlu]',ylabel='E [meV]', vminmax=None, bRot=False, ax=None):
        
-        
-        dflist=self.taipan_batch_reduction(path, scanlist, motorlist=motorlist)
-        xx, yy, intt, ax =super().tas_tidy_contour(dflist,  x_col=x_col, y_col=y_col, xlabel=xlabel, ylabel=ylabel, vminmax=vminmax, bRot=bRot, ax=ax)
+        dflist = self.taipan_batch_reduction(path, scanlist, motorlist=motorlist)
+        xx, yy, intt, ax = super().tas_tidy_contour(dflist,  x_col=x_col, y_col=y_col, xlabel=xlabel, ylabel=ylabel, vminmax=vminmax, bRot=bRot, ax=ax)
         return xx, yy, intt, ax
 
 

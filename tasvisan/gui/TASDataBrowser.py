@@ -5,15 +5,13 @@ from pathlib import Path
 import numpy as np
 import pandas as pd   
 
-from PyQt5 import QtCore, QtGui, QtWidgets
-from PyQt5.QtWidgets import (QApplication, QMainWindow, QSizePolicy, QTextEdit, QVBoxLayout, QMessageBox,QFileDialog)
+from qtpy import QtCore, QtGui, QtWidgets, uic
+from qtpy.QtCore import QTimer, QRegExp, QAbstractTableModel, Qt
+from qtpy.QtWidgets import (QApplication, QMainWindow, QSizePolicy, QTextEdit, QVBoxLayout, QMessageBox, QFileDialog,)
+from qtpy.QtGui import QIntValidator, QDoubleValidator, QRegExpValidator
 
-from PyQt5.QtGui import  QIntValidator, QDoubleValidator, QRegExpValidator
-from PyQt5 import uic
-from PyQt5.QtCore    import QTimer, QRegExp, QAbstractTableModel, Qt
 from matplotlib.backends.backend_qtagg import FigureCanvas
 from matplotlib.backends.backend_qtagg import  NavigationToolbar2QT as NavigationToolbar
-#from matplotlib.backends.qt_compat import QtWidgets
 from matplotlib.figure import Figure
 
 from lmfit import Parameters, minimize, fit_report
