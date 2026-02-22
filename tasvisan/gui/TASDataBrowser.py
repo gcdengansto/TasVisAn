@@ -45,7 +45,7 @@ class pandasModel(QAbstractTableModel):
     def rowCount(self, parent=None):
         return self._data.shape[0]
 
-    def columnCount(self, parnet=None):
+    def columnCount(self, parent =None):
         return self._data.shape[1]
 
     def data(self, index, role=Qt.DisplayRole):
@@ -614,8 +614,8 @@ class MainWindow(QtWidgets.QDialog):
                 return
             else:
                 dflist = self.taipan.taipan_scanlist_to_dflist(path=self.dataPath, scanlist=[currentscan])
-                self.curData=dflist[0].copy()
-                self.curScanInf=dflist[0].copy()
+                self.curData    = dflist[0].copy()
+                self.curScanInf = dflist[0].attrs.copy()
                 if not self.checkOverplot.isChecked():
                     self.browseCanvas.axes.clear()
                 dataX=dflist[0][:][dflist[0].attrs['scanax1']].to_numpy()
@@ -964,9 +964,9 @@ class MainWindow(QtWidgets.QDialog):
 
         
         if self.groupPeakA.isChecked():
-            if self.peakShapeA.currentText == 'Gaussian':
+            if self.peakShapeA.currentText() == 'Gaussian':
                 pars['GL_1'].value = 1
-            if self.peakShapeA.currentText == 'Lorentzian':
+            if self.peakShapeA.currentText() == 'Lorentzian':
                 pars['GL_1'].value = 2
         else:
             print('error')
@@ -975,9 +975,9 @@ class MainWindow(QtWidgets.QDialog):
                 
 
         if self.groupPeakB.isChecked():
-            if self.peakShapeB.currentText == 'Gaussian':
+            if self.peakShapeB.currentText() == 'Gaussian':
                 pars['GL_2'].value = 1
-            if self.peakShapeB.currentText == 'Lorentzian':
+            if self.peakShapeB.currentText() == 'Lorentzian':
                 pars['GL_2'].value = 2
         else:
             pars['GL_2'].value = 0
@@ -987,9 +987,9 @@ class MainWindow(QtWidgets.QDialog):
             
 
         if self.groupPeakC.isChecked():
-            if self.peakShapeC.currentText == 'Gaussian':
+            if self.peakShapeC.currentText() == 'Gaussian':
                 pars['GL_3'].value = 1
-            if self.peakShapeC.currentText == 'Lorentzian':
+            if self.peakShapeC.currentText() == 'Lorentzian':
                 pars['GL_3'].value = 2
         else:
             pars['GL_3'].value = 0
@@ -1077,9 +1077,9 @@ class MainWindow(QtWidgets.QDialog):
 
         
         if self.groupPeakA.isChecked():
-            if self.peakShapeA.currentText == 'Gaussian':
+            if self.peakShapeA.currentText() == 'Gaussian':
                 pars['GL_1'].value = 1
-            if self.peakShapeA.currentText == 'Lorentzian':
+            if self.peakShapeA.currentText() == 'Lorentzian':
                 pars['GL_1'].value = 2
         else:
             print('error')
@@ -1088,9 +1088,9 @@ class MainWindow(QtWidgets.QDialog):
                 
 
         if self.groupPeakB.isChecked():
-            if self.peakShapeB.currentText == 'Gaussian':
+            if self.peakShapeB.currentText() == 'Gaussian':
                 pars['GL_2'].value = 1
-            if self.peakShapeB.currentText == 'Lorentzian':
+            if self.peakShapeB.currentText() == 'Lorentzian':
                 pars['GL_2'].value = 2
         else:
             pars['GL_2'].value = 0
@@ -1100,9 +1100,9 @@ class MainWindow(QtWidgets.QDialog):
             
 
         if self.groupPeakC.isChecked():
-            if self.peakShapeC.currentText == 'Gaussian':
+            if self.peakShapeC.currentText() == 'Gaussian':
                 pars['GL_3'].value = 1
-            if self.peakShapeC.currentText == 'Lorentzian':
+            if self.peakShapeC.currentText() == 'Lorentzian':
                 pars['GL_3'].value = 2
         else:
             pars['GL_3'].value = 0
@@ -1126,6 +1126,12 @@ class MainWindow(QtWidgets.QDialog):
         lattice_str= self.txtLatticeParam.text().split()
         vector_str1=self.txtScatterVector1.text().split()
         vector_str2=self.txtScatterVector2.text().split()
+
+        # Add after line 1128:
+        if len(vector_str1) < 3 or len(vector_str2) < 3:
+            print("Error: Vector strings must have 3 elements")
+            return
+
         vector_u=np.array([float(vector_str1[0]), float(vector_str1[1]), float(vector_str1[2])])
         vector_v=np.array([float(vector_str2[0]), float(vector_str2[1]), float(vector_str2[2])])
         

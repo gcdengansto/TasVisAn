@@ -25,7 +25,8 @@ def descend_obj(obj, sep='\t'):
                     'VS_left', 'VS_right', 'ps_right', 'ps_left', 'ps_top', 'ps_bottom', 'pa_right', 'pa_left', 'pa_top', 'pa_bottom', 
                     'm1', 'm2', 'mtilt', 'mtrans',  'sgl', 'sgu', 'stl', 'stu', 'a1', 'a2', 'atrans', 'atilt', 'ahfocus', 'avfocus', 
                     'pghf', 'pgvf', 'cuhf', 'cuvf','sensorValueA','sensorValueB','sensorValueC','sensorValueD','setpoint1','setpoint2']
-    if type(obj) in [h5py._hl.group.Group, h5py._hl.files.File]:
+ 
+    if isinstance(obj, (h5py.Group, h5py.File)):
         for key in obj.keys():
             #print(key)
             if key in allmotornames:
@@ -77,6 +78,11 @@ def AnglesToQhkl(m2, s1, s2, a2, sgu, sgl, UBMat):
     sgu_rad = deg2rad(sgu)
     sgl_rad = deg2rad(sgl)
 
+    # Add after line 81-82 in AnglesToQhkl:
+    if np.sin(m2rad/2) == 0:
+        raise ValueError("m2 angle causes division by zero")
+    if np.sin(a2rad/2) == 0:
+        raise ValueError("a2 angle causes division by zero")
 
     ki  =   np.pi/np.sin(m2rad/2)/d_pg002
 
@@ -397,7 +403,7 @@ def lorenz_gaussian_residual(pars, x, data=None):
     B   = vals['B']
     w   = vals['w']
     
-    model = A/(kai**2+(x-x0)**2)**2    +  B/(w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x-x0)^2/w^2) + bg
+    model = A/(kai**2+(x-x0)**2)**2    +  B/(w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x-x0)**2/w**2) + bg
     if data is None:
         return model
     return model - data  
@@ -411,15 +417,18 @@ def lorentzian_asym(pars, x, data=None):
     asym   = vals['asym']
     bg     = vals['bg']
     res_w  = vals['res_w']
+    # Line 415 - Add check:
+    if len(x) < 2:
+        raise ValueError("x must have at least 2 elements")
     
-    step=x[1]-x[0]
+    step = x[1] - x[0]
 
-    x_range=np.linspace(x0-3*step, x0+3*step, 7)
-    res_g  = 1/(res_w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x_range-x0)**2/res_w**2)
+    x_range = np.linspace(x0-3*step, x0+3*step, 7)
+    res_g   = 1/(res_w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x_range-x0)**2/res_w**2)
 
-    gg  = 2*gamma0/(1+np.exp(asym*(x-x0)))
+    gg      = 2*gamma0/(1+np.exp(asym*(x-x0)))
 
-    model =  A*gg/(gg**2+(x-x0)**2)-A*gg/(gg**2+(x+x0)**2)
+    model   =  A*gg/(gg**2+(x-x0)**2)-A*gg/(gg**2+(x+x0)**2)
 
     conv_model = np.convolve(model, res_g, 'same') + bg
     
@@ -510,16 +519,27 @@ def ni_s2_residual_cu(pars, x, data=None):
     
 def fit_peak(x, data=None, func='G', initial=None):
     
-    fitted_data =  pd.DataFrame([])
+    fitted_data     =  pd.DataFrame([])
     fitted_params   =  pd.DataFrame(columns = ['A', 'A_err', 'w','w_err', 'x0', 'x0_err', 'bg', 'bg_err'])
-    dataX=x
-    dataY=data
-    if isinstance(dataY, pd.DataFrame):
+    dataX  = x
+    dataY  = data
+
+    if isinstance(dataX, pd.DataFrame):
         dataX = dataX.to_numpy()
-    if isinstance(data, pd.DataFrame):
+    if isinstance(dataY, pd.DataFrame):
         dataY = dataY.to_numpy()
+
     dataX=dataX[np.logical_not(np.isnan(dataX))]
     dataY=dataY[np.logical_not(np.isnan(dataY))]
+
+    if len(dataX) == 0 or len(dataY) == 0:
+        raise ValueError("No valid data points after removing NaNs")
+
+    if len(dataX) != len(dataY):
+        min_len = min(len(dataX), len(dataY))
+        dataX = dataX[:min_len]
+        dataY = dataY[:min_len]
+
     #print(dataX)
     #print(dataY)
     peak_params  =  Parameters()

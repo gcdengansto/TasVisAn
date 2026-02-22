@@ -85,9 +85,18 @@ class Sika(TasData):
         params['_header_line']     = last_header_line
         params['_header_line_num'] = last_header_line_num
 
-        params['expno']   = params.pop('experiment_number')
-        params['scanno']  = params.pop('scan')
-        params['lattice'] = params.pop('latticeconstants')
+        #params['expno']   = params.pop('experiment_number')
+        #params['scanno']  = params.pop('scan')
+        #params['lattice'] = params.pop('latticeconstants')
+
+        # Use .pop() with default to avoid KeyError:
+        params['expno'] = params.pop('experiment_number', None)
+        params['scanno'] = params.pop('scan', None)
+        params['lattice'] = params.pop('latticeconstants', None)
+
+        if params['expno'] is None or params['scanno'] is None or params['lattice'] is None:
+            raise ValueError("Missing required header parameters in data file")
+
         
         if 'steps' in params:
             str_steps = params['steps']
@@ -102,14 +111,14 @@ class Sika(TasData):
                 params['scanax1']=matches[0]
                 params['scanax2']=matches[1]
             else:
-                params['scanax1']=params['def_x']
+                params['scanax1'] = params.get('def_x', 'Pt.')
                 params['scanax2']=None
         else:
-            params['scanax1']=params['def_x']
-            params['scanax2']=None
+            params['scanax1'] = params.get('def_x', 'Pt.')
+            params['scanax2'] = None
 
         if params['scanax1'] == "":
-            params['scanax1'] == "Pt."
+            params['scanax1'] = "Pt."
             print("Scan axis is empty! Please check. it is temperarily set to Pt.")
         if params['scanax1'] in ['h', 'k', 'l']:
             params['scanax1']= "q"+ params['scanax1']
@@ -117,7 +126,6 @@ class Sika(TasData):
             params['scanax1']= "en"
 
             #print("no or too many scanning axis is found")
-
 
         return params
 
@@ -194,6 +202,8 @@ class Sika(TasData):
 
 
     def sika_scanlist_to_dflist(self, path="", scanlist=None):
+        if scanlist is None:
+            raise ValueError("scanlist cannot be None")
 
         dflist=[]
 
@@ -359,6 +369,7 @@ class Sika(TasData):
             #print(fullpath)
 
             scanno_list.append(int(fileno))
+            try:
             with fullpath.open() as f:
                 totallines = list(f)                              #read the lines in the file f, initialize a list
                 for index, line in enumerate (totallines):
@@ -369,6 +380,12 @@ class Sika(TasData):
                         #print(index)
                     if (line.find("# scan_title =")!= -1):
                         scantitle_list.append(line[14:-1])
+
+            except IOError as e:
+                print(f"Couldn't open file: {e}")
+                command_list.append("error")
+                scantitle_list.append("error")
+
 
         scan_dict ={"scanno": scanno_list, "command": command_list, "scantitle": scantitle_list}
         scanlist=pd.DataFrame(scan_dict)
@@ -444,7 +461,7 @@ class Sika(TasData):
         sika_exp.infin    =  -1    #const-Ef
         
         sika_exp.mono.dir =  1
-        sika_exp.mono.dir = -1 
+        sika_exp.sample.dir = -1
         sika_exp.ana.dir  =  1
         
 
@@ -490,7 +507,7 @@ class Sika(TasData):
             CC=ffactor["CC"]
             cc=ffactor["cc"]
             DD=ffactor["DD"]
-            initial = list(initial.values()) + [AA, aa, BB, bb, CC, cc, DD]  #new initial list
+            initial = list(initial) + [AA, aa, BB, bb, CC, cc, DD]  #new initial list
      
 
         newH=np.linspace(H[0], H[-1], 101)
@@ -698,6 +715,9 @@ class Sika(TasData):
 
                 else:
                     # This is a fixed position
+                    if i+1 > len(parts):
+                        print("Error: Missing value for motor")
+                        return None
                     fix_motor.append(motor)
                     fix_pos.append(float(parts[i+1]))
                     #motor_values[motor] = float(parts[i+1])

@@ -168,7 +168,7 @@ def lorenz_gaussian_residual(pars, x, data=None):
     B   = vals['B']
     w   = vals['w']
     
-    model = A/(kai**2+(x-x0)**2)**2    +  B/(w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x-x0)^2/w^2) + bg
+    model = A/(kai**2+(x-x0)**2)**2    +  B/(w*np.sqrt(np.pi/(4*np.log(2)))) * np.exp(-4*np.log(2)*(x-x0)**2/w**2) + bg
     if data is None:
         return model
     return model - data  
@@ -182,6 +182,10 @@ def lorentzian_asym(pars, x, data=None):
     asym   = vals['asym']
     bg     = vals['bg']
     res_w  = vals['res_w']
+
+     # Add this check:
+    if len(x) < 2:
+        raise ValueError("x must have at least 2 elements")
     
     step=x[1]-x[0]
 
@@ -263,14 +267,25 @@ def fit_peak(x, data=None, func='G', initial=None):
     fitted_params   =  pd.DataFrame(columns = ['A', 'A_err', 'w','w_err', 'x0', 'x0_err', 'bg', 'bg_err'])
     dataX=x
     dataY=data
-    if isinstance(dataY, pd.DataFrame):
+    # Add check before line 186:
+    if len(x) < 2:
+        raise ValueError("x must have at least 2 elements")
+
+    if isinstance(dataX, pd.DataFrame):
         dataX = dataX.to_numpy()
-    if isinstance(data, pd.DataFrame):
+    if isinstance(dataY, pd.DataFrame):
         dataY = dataY.to_numpy()
     dataX=dataX[np.logical_not(np.isnan(dataX))]
     dataY=dataY[np.logical_not(np.isnan(dataY))]
-    #print(dataX)
-    #print(dataY)
+    if len(dataX) == 0 or len(dataY) == 0:
+        raise ValueError("No valid data points after removing NaNs")
+
+    if len(dataX) != len(dataY):
+        min_len = min(len(dataX), len(dataY))
+        dataX = dataX[:min_len]
+        dataY = dataY[:min_len]
+
+
     peak_params  =  Parameters()
     if initial == None:
         pointnum=len(dataY)
@@ -479,7 +494,10 @@ def AsymSqwDemoB(H,K,L,W,p):
 
 def PrefDemo(H, K, L, W, EXP, p):
     #Prefactor example for convolution tests
-    
+    # Add check before line 487:
+    if len(p) < 15:
+        raise ValueError("Parameter 'p' must have at least 15 elements")
+
     [sample, rsample] = EXP.get_lattice()
 
     q2 = npy.tools._modvec([H, K, L], rsample) ** 2
@@ -517,14 +535,20 @@ def PrefDemo(H, K, L, W, EXP, p):
 
 def SqwDemoQscan(H, K, L, W, p):
     # for the q scan
-
-    
     # Extract the three parameters contained in "p":
     q1    =   p[0]                    # peak1 q position
     q2    =   p[1]                    # peak1 q position
     ratio =   p[2]                    # Intensity ratio 
     w1    =   p[3] 
     w2    =   p[4]                    # peak width
+
+    # Add checks before each division:
+    if len(H) == 0:
+        raise ValueError("H cannot be empty")
+    if len(K) == 0:
+        raise ValueError("K cannot be empty")
+    if len(L) == 0:
+        raise ValueError("L cannot be empty")
 
     A1=np.zeros(W.shape)
     

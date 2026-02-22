@@ -68,7 +68,8 @@ class TasData:
         print(f'This is a TAS experiment {self.expnum} entitled with {self.title} '
               f'using {self.sample} by {self.user[0]} et al.')
 
-    def tas_datanormalize2(self, dflist=None, norm_mon_count=-999999):
+
+    def tas_datanormalize(self, dflist=None, norm_mon_count=-999999):
         """
         Normalize detector counts by monitor counts.
         
@@ -81,117 +82,58 @@ class TasData:
         """
         if not isinstance(dflist, list): 
             raise TypeError("dflist must be a list")
-        if len(dflist[0]) == 0: 
+        if len(dflist) == 0:
+            raise TypeError("dflist cannot be empty")
+        if dflist[0].empty:
             raise TypeError("the first dataframe in dflist is empty.")
 
-        normalized_dflist = []
-
-        for index, df in enumerate(dflist):
-            if isinstance(df, pd.DataFrame):
-                df = df.copy()  # Avoid modifying original data
-                df['detector'] = df['detector'].astype(float)
-                
-                # Use the monitor counts from first dataframe if not provided
-                if index == 0:  
-                    if len(df) > 1:
-                        # Use the single row's monitor value if only 1 row exists
-                        avg_monitor =  df["monitor"][:-1].mean() 
-                    else :  #len(df) == 1;   len(df) ==0 will not reach here. it stops at the beginning.
-                        avg_monitor = df["monitor"].iloc[0] 
-
-
-                
-                if norm_mon_count < 0 : # if norm_mon_count was not given, use the monitor value of the first df
-                    norm_mon_count = avg_monitor
-                
-                # Remove rows where monitor count is too low (incomplete counting)
-                df = df[df["monitor"] >= 0.9 * avg_monitor]
-                
-                # Skip empty dataframes after filtering
-                if len(df) == 0:
-                    normalized_dflist.append(df)  # Add empty df
-                    print(f"Warning: DataFrame at index {index} became empty after filtering")
-                    continue
-                
-                # Normalize to target monitor count
-                df['detector'] = df['detector'] * norm_mon_count / df['monitor']
-                normalized_dflist.append(df)
-            else:
-                print(f"Error: the {index} element in dflist is not a DataFrame.")
-                
-        return normalized_dflist
+        required_cols = ['detector', 'monitor']
+        for df in dflist:
+            for col in required_cols:
+                if col not in df.columns:
+                    raise ValueError(f"Missing required column: {col}")
         
-    def tas_datanormalize(self, dflist=None, norm_mon_count=-999999):
-        """
-        Normalize detector counts by monitor counts.
-        
-        Args:
-            dflist (list): List of pandas DataFrames to normalize
-            norm_mon_count (int): Target monitor count for normalization
-                If negative, uses the average monitor count from first dataframe
-            
-        Returns:
-            list: List of normalized DataFrames
-        """
-        # Validate dflist is a non-empty list
-        if not isinstance(dflist, list) or len(dflist) == 0: 
-            raise TypeError("dflist must be a non-empty list.")
-        
-        # Validate first element is a non-empty DataFrame
-        if not isinstance(dflist[0], pd.DataFrame):
-            raise TypeError("the first element in dflist must be a DataFrame.")
-        if len(dflist[0]) == 0: 
-            raise ValueError("the first DataFrame in dflist is empty.")
         
         normalized_dflist = []
-        
-        # Determine the normalization reference value from first dataframe if not provided
+
+        # Determine norm_mon_count from first df if not provided
         if norm_mon_count < 0:
             first_df = dflist[0]
-            if len(first_df) >= 2:
-                norm_mon_count = first_df["monitor"][:-1].mean()
-            else:  # len(first_df) == 1, since we already checked it's not empty
-                norm_mon_count = first_df["monitor"].iloc[0]
+            first_df = first_df[first_df["monitor"] != 0]  # exclude zero-monitor rows before averaging
+            norm_mon_count = first_df["monitor"].mean()
 
-        # Now process all dataframes
+
+
         for index, df in enumerate(dflist):
             if isinstance(df, pd.DataFrame):
-                df = df.copy()  # Avoid modifying original data
+                df = df.copy()                                              # avoid modifying original
                 df['detector'] = df['detector'].astype(float)
-                
-                # Calculate average monitor for THIS dataframe (excluding last row for filtering)
-                if len(df) >= 2:
-                    avg_monitor_this_df = df["monitor"][:-1].mean()
-                elif len(df) == 1:
-                    avg_monitor_this_df = df["monitor"].iloc[0]
-                else:
-                    # Empty dataframe - keep it to maintain indices
-                    print(f"Warning: DataFrame at index {index} is empty")
-                    normalized_dflist.append(df)
-                    continue
-                
-                # Remove rows where monitor count is too low (incomplete counting)
-                # Filter based on THIS dataframe's average, not norm_mon_count
-                df = df[df["monitor"] >= 0.9 * avg_monitor_this_df]
-                
-                # If dataframe becomes empty after filtering, keep it to maintain indices
+                #df = df[df["monitor"] != 0]                                # remove zero-monitor rows
+                # Only check the last row
+                if df["monitor"].iloc[-1] < df["monitor"].mean() * 0.90:
+                    df = df.iloc[:-1]
+                # Skip empty dataframes after filtering
                 if len(df) == 0:
-                    print(f"Warning: DataFrame at index {index} became empty after filtering")
                     normalized_dflist.append(df)
+                    print(f"Warning: DataFrame at index {index} became empty after filtering")
                     continue
-                
-                # Normalize to target monitor count (uses norm_mon_count, not avg_monitor_this_df)
-                #print("XXXXXXXXXXXXXXXXX")
-                #print(len(df['detector']))
-                #print(len(df['monitor']))
-                #print(norm_mon_count)
-                #print("XXXXXXXXXXXXXXXXX")
+
+                if df["monitor"].iloc[-1] < df["monitor"].mean() * 0.90:  # incomplete last point
+                    df = df.iloc[:-1]                                      # drop last row
+
+                # Skip if dropping last row made it empty
+                if len(df) == 0:
+                    normalized_dflist.append(df)
+                    print(f"Warning: DataFrame at index {index} became empty after dropping last row")
+                    continue
+
                 df['detector'] = df['detector'] * norm_mon_count / df['monitor']
                 normalized_dflist.append(df)
             else:
-                print(f"Error: the {index} element in dflist is not a DataFrame.")
-                
+                print(f"Error: element at index {index} in dflist is not a DataFrame.")
+
         return normalized_dflist
+
 
     def tas_datacombine(self, dflist=None, norm_mon_count=-999999):
         """
@@ -225,8 +167,6 @@ class TasData:
                 if index == 0:
                     Xaxis = curXaxis
                     comb_df = df.copy()
-                    if 'scanax1' not in df.attrs: 
-                        raise ValueError("DataFrame missing scanax1 attribute")
                     comb_df.attrs = df.attrs.copy()
 
                 elif curXaxis == Xaxis:
@@ -658,13 +598,16 @@ class TasData:
         if ax is None:
             fig, ax = plt.subplots(figsize=(6,6))
 
-        for scan in dflist:
+        for scanindex, scan in enumerate(dflist):
+            if not hasattr(scan, 'attrs') or 'scanax1' not in scan.attrs:
+                print(f"Warning: Scan at index {scanindex} missing scanax1 attribute, skipping.")
+                continue
             Xaxis = scan.attrs['scanax1']   
             if Xaxis != y_col:
                 raise ValueError("The scan axis of all data must be the same as y_col.")
         
-        low_lim = min(df[y_col].min() for df in dflist) #use the min as the low range
-        up_lim  = max(df[y_col].max() for df in dflist)  #use the max as the up range
+        low_lim = min(scan[y_col].min() for scan in dflist) #use the min as the low range
+        up_lim  = max(scan[y_col].max() for scan in dflist) #use the max as the up range 
         #print(f"lowlim:{low_lim}; uplim:{up_lim}")
 
         for scanindex, scan in enumerate (dflist):
@@ -677,6 +620,9 @@ class TasData:
 
             if(scanindex==0):
                 #get stepsize from the first data
+                if datalines <= 1:
+                    print(f"Warning: Scan {scanindex} has only {datalines} point(s), skipping.")
+                    continue
                 delta0      = np.abs(hklw[Xaxis][0]-hklw[Xaxis][datalines-1])/(datalines-1)    #determine the step size
                 points      = int(np.around((up_lim-low_lim)/delta0)) +1                       #determine how many steps in whole range
                 scan_range  = np.linspace(low_lim, up_lim, points)                             #generate an array with step size of delta
@@ -763,7 +709,10 @@ class TasData:
             # Keep only positive energy transfers
             newdf = df.loc[df['en'] > 0].copy()  # Use .copy() to avoid SettingWithCopyWarning 
             newdf.reset_index(drop=True, inplace=True)  
-            
+            if not hasattr(df, 'attrs') or 'scanax1' not in df.attrs:
+                print(f"Warning: Scan {index} missing scanax1 attribute, skipping correction.")
+                newdflist.append(newdf)
+                continue
             if df.attrs['scanax1'] == 'en':
                 deltae = newdf['en'].to_numpy()
                 counts = newdf['detector'].to_numpy()
@@ -870,7 +819,7 @@ class TasData:
         if hklw is None:
             raise ValueError("hklw is None.") 
         if exp is None:
-            exp = self.taipan_expconfig(ef = 14.87)
+            exp = self.tas_expconfig(ef = 14.87)
 
         if initial is None:
             raise ValueError("initial is None.")
@@ -920,8 +869,7 @@ class TasData:
         if hklw is None:
             raise ValueError("hklw is None.") 
         if exp is None:
-            exp = self.taipan_expconfig(ef = 14.87)
-
+            exp = self.tas_expconfig(ef=14.87)
         if initial is None:
             raise ValueError("initial is None.") 
 

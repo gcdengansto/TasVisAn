@@ -88,14 +88,23 @@ class Taipan(TasData):
         params['_header_line']     = last_header_line
         params['_header_line_num'] = last_header_line_num
 
-        params['expno']   = params.pop('experiment_number')
-        params['scanno']  = params.pop('scan')
-        params['lattice'] = params.pop('latticeconstants')
+        #params['expno']   = params.pop('experiment_number')
+        #params['scanno']  = params.pop('scan')
+        #params['lattice'] = params.pop('latticeconstants')
         
+        # Use .pop() with default to avoid KeyError:
+        params['expno'] = params.pop('experiment_number', None)
+        params['scanno'] = params.pop('scan', None)
+        params['lattice'] = params.pop('latticeconstants', None)
 
-        params['scanax1'] = params['def_x']
-        if params['scanax1'] == "":
-            print("scan axis is empty!, please check.")
+        if params['expno'] is None or params['scanno'] is None or params['lattice'] is None:
+            raise ValueError("Missing required header parameters in data file")
+
+
+        params['scanax1'] = params.get('def_x', '')
+        if not params['scanax1']:
+            print("Warning: scan axis is empty!")
+
 
         return params
 
@@ -234,6 +243,7 @@ class Taipan(TasData):
             #print(file["/entry1/experiment/title"])
             temptitle=file.get("/entry1/experiment/title")[0]    #get() is to get the dataset in hdf, you need the full path, it is always an array-like object, use [] to index
             #print(temptitle)
+            tempax=None
             for index, name in enumerate(namelist):
                 if name.find("data") != -1:
                     xx = np.array(file[name])
@@ -244,6 +254,8 @@ class Taipan(TasData):
                     new_col.columns = [col_list[index]]
                     pd_hdf       = pd.merge(pd_hdf, new_col, how='outer', left_index=True, right_index=True,suffixes=('', ''))
 
+            if tempax is None:
+                raise ValueError("Could not determine scan axis from data")
 
         neworder=pd_hdf.columns.to_list()
         
@@ -252,15 +264,24 @@ class Taipan(TasData):
             neworder.insert(0, tempax)
         pd_hdf=pd_hdf.reindex(columns=neworder)
         newcolnames=neworder.copy()
-        #newcolnames[newcolnames.index('qh')]= 'h'
-        #newcolnames[newcolnames.index('qk')]= 'k'
-        #newcolnames[newcolnames.index('ql')]= 'l'
-        #newcolnames[newcolnames.index('en')]= 'e'
-        newcolnames[newcolnames.index('bm1_counts')]= 'monitor'
-        newcolnames[newcolnames.index('bm2_counts')]= 'detector'
-        
-        newcolnames[newcolnames.index('VS_left')] = 'vs_left'
-        newcolnames[newcolnames.index('VS_right')]= 'vs_right'
+
+        #newcolnames[newcolnames.index('bm1_counts')]= 'monitor'
+        #newcolnames[newcolnames.index('bm2_counts')]= 'detector'
+        #newcolnames[newcolnames.index('VS_left')] = 'vs_left'
+        #newcolnames[newcolnames.index('VS_right')]= 'vs_right'
+
+        # Add existence checks before renaming:
+        if 'bm1_counts' in pd_hdf.columns:
+            newcolnames[newcolnames.index('bm1_counts')]= 'monitor'
+        if 'bm2_counts' in pd_hdf.columns:
+            newcolnames[newcolnames.index('bm2_counts')]= 'detector'
+        if 'VS_left' in pd_hdf.columns:
+            newcolnames[newcolnames.index('VS_left')] = 'vs_left'
+        if 'VS_right' in pd_hdf.columns:
+            newcolnames[newcolnames.index('VS_right')]= 'vs_right'
+
+
+
         if 'sensorValueA' in pd_hdf:
             newcolnames[newcolnames.index('sensorValueA')]= 'tempVTI' #'T1_Sensor1'
         if 'sensorValueB' in pd_hdf:
@@ -286,6 +307,9 @@ class Taipan(TasData):
         return pd_hdf 
 
     def taipan_scanlist_to_dflist(self, path="", scanlist=None):
+
+        if scanlist is None:
+            raise ValueError("scanlist cannot be None")
 
         dflist=[]
 
@@ -695,7 +719,7 @@ class Taipan(TasData):
         taipan_exp.infin    =  -1    #const-Ef
         
         taipan_exp.mono.dir =  -1
-        taipan_exp.mono.dir =   1
+        taipan_exp.sample.dir =   1
         taipan_exp.ana.dir  =  -1
         
 
@@ -808,7 +832,7 @@ class Taipan(TasData):
             exp = self.taipan_expconfig(ef = 14.87)
 
         if not isinstance(initial, (list)):
-                raise ValueError("initial is a list.") 
+                raise ValueError("initial must be a list.") 
 
         [H, K, L, W, Iobs] =  hklw.to_numpy().T  #split into columns
         dIobs=np.sqrt(Iobs)
@@ -1249,6 +1273,7 @@ class Taipan(TasData):
 
                 if len(scanQList) ==0:
                     print("error: startQ and end Q is the same!")
+                    return batch_str
                 elif len(scanQList) ==1:
                     if q_step[index][scanQList[0]]== 0:
                         print("error: step could not be zero!")
